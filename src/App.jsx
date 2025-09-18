@@ -2,6 +2,8 @@ import { useState } from 'react'
 import './App.css'
 import TextField from './components/TextField';
 import Table from './components/Table';
+import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
 
 function App() {
   const [form, setForm] = useState({
@@ -9,24 +11,50 @@ function App() {
     email: "",
     phone: "",
     message: "",
-    remember: false,
   });
+  const [enquiryList, setEnquiryList] = useState([]);
 
   const handleChange = (e) => {
-    const { id, value, type, checked } = e.target;
+    const { name, value } = e.target;
     setForm((prev) => ({
       ...prev,
-      [id]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(form); // handle form submission
+
+    axios.post('http://localhost:8020/api/website/enquiry/insert', form)
+      .then(response => {
+        console.log('Form submitted successfully:', response.data);
+        toast.success('Form submitted successfully!');
+        setForm({
+          name: "",
+          email: "",
+          phone: "",
+          message: "",
+        });
+      })
+      .catch(error => {
+        console.error('Error submitting form:', error);
+      });
+  };
+
+  const getEnquiryList = () => {
+
+    axios.get('http://localhost:8020/api/website/enquiry/view')
+      .then(response => {
+        setEnquiryList(response.data?.enquiryList || []);
+      })
+      .catch(error => {
+        console.error('Error :', error);
+      });
   };
 
   return (
     <>
+      <ToastContainer />
       <div className='grid grid-cols-[30%_auto] p-4 gap-10 '>
         <div className='bg-gray-100 rounded-2xl p-4'>
           <h2 className='text-lg font-bold mb-4'>Enquiry Form</h2>
@@ -77,7 +105,7 @@ function App() {
         <div className='bg-gray-100 rounded-2xl p-4'>
           <h2 className='text-lg font-bold mb-4'>Enquiry List</h2>
 
-          <Table />
+          <Table data={enquiryList} />
         </div>
 
 
