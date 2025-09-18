@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 import TextField from './components/TextField';
 import Table from './components/Table';
@@ -51,6 +51,10 @@ function App() {
         console.error('Error :', error);
       });
   };
+
+  useEffect(() => {
+    getEnquiryList();
+  }, []);
 
   return (
     <>
