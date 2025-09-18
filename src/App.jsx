@@ -4,13 +4,14 @@ import TextField from './components/TextField';
 import Table from './components/Table';
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
-
+import Swal from 'sweetalert2/dist/sweetalert2.js'
 function App() {
   const [form, setForm] = useState({
     name: "",
     email: "",
     phone: "",
     message: "",
+    _id: null, // Add an id field to track if we're editing an existing entry
   });
   const [enquiryList, setEnquiryList] = useState([]);
 
@@ -25,20 +26,44 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    axios.post('http://localhost:8020/api/website/enquiry/insert', form)
-      .then(response => {
-        console.log('Form submitted successfully:', response.data);
-        toast.success('Form submitted successfully!');
-        setForm({
-          name: "",
-          email: "",
-          phone: "",
-          message: "",
+    if (form._id) {
+      // Update existing entry
+      axios.put(`http://localhost:8020/api/website/enquiry/update/${form._id}`, form)
+        .then(response => {
+          toast.success('Form updated successfully!');
+          setForm({
+            name: "",
+            email: "",
+            phone: "",
+            message: "",
+            _id: null,
+          });
+          getEnquiryList(); // Refresh the list after update
+        })
+        .catch(error => {
+          console.error('Error updating form:', error);
         });
-      })
-      .catch(error => {
-        console.error('Error submitting form:', error);
-      });
+
+    } else {
+
+      // Create new entry
+      axios.post('http://localhost:8020/api/website/enquiry/insert', form)
+        .then(response => {
+          console.log('Form submitted successfully:', response.data);
+          toast.success('Form submitted successfully!');
+          setForm({
+            name: "",
+            email: "",
+            phone: "",
+            message: "",
+          });
+          getEnquiryList();
+        })
+        .catch(error => {
+          console.error('Error submitting form:', error);
+        });
+    }
+
   };
 
   const getEnquiryList = () => {
@@ -99,7 +124,7 @@ function App() {
         focus:outline-none focus:ring-blue-300 font-medium rounded-lg 
         text-sm w-full sm:w-auto px-5 py-2.5 text-center"
             >
-              Submit
+              {form._id ? 'Update' : 'Submit'}
             </button>
           </form>
         </div>
@@ -109,7 +134,7 @@ function App() {
         <div className='bg-gray-100 rounded-2xl p-4'>
           <h2 className='text-lg font-bold mb-4'>Enquiry List</h2>
 
-          <Table data={enquiryList} />
+          <Table data={enquiryList} getEnquiryList={getEnquiryList} Swal={Swal} setForm={setForm} />
         </div>
 
 
